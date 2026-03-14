@@ -1,9 +1,16 @@
 import { clsx } from 'clsx';
-import type { WorkOrderStatus, DefectStatus, ReleaseStatus } from '@/types/common';
+import type { WorkOrderStatus, DefectStatus, ReleaseStatus, AircraftStatus } from '@/types/common';
 
-type AnyStatus = WorkOrderStatus | DefectStatus | ReleaseStatus | string;
+type AnyStatus = WorkOrderStatus | DefectStatus | ReleaseStatus | AircraftStatus | string;
 
 const STATUS_STYLES: Record<string, string> = {
+  // Aircraft
+  Active:         'bg-green-100 text-green-700',
+  Grounded:       'bg-red-100 text-red-700',
+  InMaintenance:  'bg-yellow-100 text-yellow-800',
+  Withdrawn:      'bg-gray-200 text-gray-600',
+  WrittenOff:     'bg-gray-300 text-gray-500 line-through',
+
   // Work order
   draft:                   'bg-gray-100 text-gray-700',
   planned:                 'bg-blue-100 text-blue-700',

@@ -8,6 +8,7 @@ using Mro.Application.Abstractions;
 using Mro.Application.Behaviors;
 using Mro.Infrastructure.Audit;
 using Mro.Infrastructure.Persistence;
+using Mro.Infrastructure.Persistence.Repositories;
 using Mro.Infrastructure.Security;
 
 namespace Mro.Api.Extensions;
@@ -93,6 +94,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAircraftRepository, AircraftRepository>();
         services.AddScoped<AuditInterceptor>();
 
         return services;

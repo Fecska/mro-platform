@@ -39,6 +39,24 @@ export interface BaseEntity {
 
 // ── Status types (match backend state machines) ───────────────────────────────
 
+export type AircraftStatus =
+  | 'Active'
+  | 'Grounded'
+  | 'InMaintenance'
+  | 'Withdrawn'
+  | 'WrittenOff';
+
+export type CounterType =
+  | 'TotalFlightHours'
+  | 'TotalFlightCycles'
+  | 'TotalLandings'
+  | 'Engine1Hours'
+  | 'Engine1Cycles'
+  | 'Engine2Hours'
+  | 'Engine2Cycles'
+  | 'ApuHours'
+  | 'ApuCycles';
+
 export type WorkOrderStatus =
   | 'draft'
   | 'planned'
