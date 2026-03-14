@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Prevent layout shift from scrollbar */
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
+@layer components {
+  /* Hard-stop alert — compliance block, cannot be styled away */
+  .hard-stop-alert {
+    @apply bg-red-50 border-2 border-red-600 rounded-lg p-4 text-red-800 font-semibold;
+  }
+
+  /* Status badge base */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
