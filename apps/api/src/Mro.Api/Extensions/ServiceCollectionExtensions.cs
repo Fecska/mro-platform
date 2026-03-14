@@ -10,6 +10,7 @@ using Mro.Infrastructure.Audit;
 using Mro.Infrastructure.Persistence;
 using Mro.Infrastructure.Persistence.Repositories;
 using Mro.Infrastructure.Security;
+using Mro.Infrastructure.Storage;
 
 namespace Mro.Api.Extensions;
 
@@ -96,6 +97,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAircraftRepository, AircraftRepository>();
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IDocumentStorageService, S3DocumentStorageService>();
+        services.AddAWSService<Amazon.S3.IAmazonS3>();
         services.AddScoped<AuditInterceptor>();
 
         return services;
