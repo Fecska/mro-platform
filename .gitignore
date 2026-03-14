@@ -1,0 +1,44 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+bin/
+obj/
+dist/
+build/
+out/
+.next/
+
+# Dependencies
+node_modules/
+packages/
+
+# IDE
+.vscode/
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+TestResults/
+
+# Docker volumes
+pgdata/
+redisdata/
+
+# Secrets
+*.pem
+*.key
+*.pfx
+secrets/
