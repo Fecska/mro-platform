@@ -1,13 +1,11 @@
-using MediatR;
-
 namespace Mro.Domain.Events;
 
 /// <summary>
 /// Marker interface for all domain events.
-/// Implements MediatR INotification so events can be dispatched
-/// via the in-process event bus without HTTP overhead.
+/// Domain layer has no dependency on MediatR — the Application layer
+/// bridges domain events to MediatR notifications via IDomainEventNotification.
 /// </summary>
-public interface IDomainEvent : INotification
+public interface IDomainEvent
 {
     /// <summary>Unique identifier of this event instance.</summary>
     Guid EventId { get; }

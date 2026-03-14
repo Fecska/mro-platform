@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Mro.Application.Abstractions;
 using Mro.Domain.Entities;
 using Mro.Infrastructure.Audit;
 
@@ -14,7 +13,6 @@ namespace Mro.Infrastructure.Persistence;
 /// </summary>
 public sealed class AppDbContext(
     DbContextOptions<AppDbContext> options,
-    ICurrentUserService currentUserService,
     AuditInterceptor auditInterceptor)
     : DbContext(options)
 {

@@ -16,7 +16,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.41" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.404.9" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.405" />
     <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
   </ItemGroup>
 
