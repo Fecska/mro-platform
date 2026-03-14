@@ -1,6 +1,9 @@
+using System.Text;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Mro.Application.Abstractions;
 using Mro.Application.Behaviors;
 using Mro.Infrastructure.Audit;
@@ -23,6 +26,7 @@ public static class ServiceCollectionExtensions
             .AddDatabase(configuration)
             .AddApplicationServices()
             .AddInfrastructureServices()
+            .AddJwtAuthentication(configuration)
             .AddHttpContextAccessor();
 
         return services;
@@ -87,7 +91,48 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<AuditInterceptor>();
+
+        return services;
+    }
+
+    // ── JWT authentication ───────────────────────────────────────────────────
+
+    private static IServiceCollection AddJwtAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var secretKey = configuration["Jwt:SecretKey"]
+            ?? throw new InvalidOperationException("Jwt:SecretKey is not configured.");
+        var issuer    = configuration["Jwt:Issuer"]   ?? "mro-platform";
+        var audience  = configuration["Jwt:Audience"] ?? "mro-platform-api";
+
+        services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey         = new SymmetricSecurityKey(
+                                                  Encoding.UTF8.GetBytes(secretKey)),
+                    ValidateIssuer   = true,
+                    ValidIssuer      = issuer,
+                    ValidateAudience = true,
+                    ValidAudience    = audience,
+                    ValidateLifetime = true,
+                    ClockSkew        = TimeSpan.FromSeconds(30),
+                    RoleClaimType    = System.Security.Claims.ClaimTypes.Role,
+                };
+            });
+
+        services.AddAuthorization();
 
         return services;
     }

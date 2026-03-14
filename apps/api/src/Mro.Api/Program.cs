@@ -37,9 +37,7 @@ try
         });
     });
 
-    // Authentication/authorisation (JWT) — configured in Sprint 1 auth module
-    builder.Services.AddAuthentication();
-    builder.Services.AddAuthorization();
+    // Authentication/authorisation (JWT) — wired in AddMroPlatform → AddJwtAuthentication
 
     // ── Build ─────────────────────────────────────────────────────────────
     var app = builder.Build();
