@@ -40,6 +40,13 @@ public readonly record struct Permission(string Code)
     public static readonly Permission PersonnelView           = new("personnel:view");
     public static readonly Permission PersonnelManage         = new("personnel:manage");
 
+    /// <summary>
+    /// Required to add or lift operational restrictions on an employee
+    /// (e.g. TemporarySuspension, SupervisedWorkOnly, NoReleasePrivilege).
+    /// Intentionally separated from PersonnelManage to limit who can restrict personnel.
+    /// </summary>
+    public static readonly Permission PersonnelRestrict       = new("personnel:restrict");
+
     // ── Organisation administration ─────────────────────────────────────────
     public static readonly Permission OrgManage               = new("org:manage");
     public static readonly Permission OrgUserManage           = new("org:user_manage");

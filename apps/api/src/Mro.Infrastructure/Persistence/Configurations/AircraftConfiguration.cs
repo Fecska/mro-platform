@@ -43,6 +43,11 @@ public sealed class AircraftConfiguration : IEntityTypeConfiguration<Aircraft>
             .HasForeignKey(a => a.AircraftTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Ignore read-only wrapper properties — actual navigation is via the private backing field.
+        builder.Ignore(a => a.Counters);
+        builder.Ignore(a => a.StatusHistory);
+        builder.Ignore(a => a.InstalledComponents);
+
         builder.HasMany<AircraftCounter>("_counters")
             .WithOne()
             .HasForeignKey(c => c.AircraftId)

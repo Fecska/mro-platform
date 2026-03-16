@@ -34,15 +34,43 @@ public sealed class S3DocumentStorageService : IDocumentStorageService
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucket,
-            Key = storagePath,
-            Expires = DateTime.UtcNow.AddSeconds(expirySeconds),
-            Verb = HttpVerb.GET,
+            Key        = storagePath,
+            Expires    = DateTime.UtcNow.AddSeconds(expirySeconds),
+            Verb       = HttpVerb.GET,
         };
 
         // GetPreSignedURL is synchronous in AWSSDK.S3 v3
         return await Task.FromResult(_s3.GetPreSignedURL(request));
     }
 
+    public async Task<string> GetUploadUrlAsync(
+        string storagePath,
+        string contentType,
+        int expirySeconds = 300,
+        CancellationToken ct = default)
+    {
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName  = _bucket,
+            Key         = storagePath,
+            Expires     = DateTime.UtcNow.AddSeconds(expirySeconds),
+            Verb        = HttpVerb.PUT,
+            ContentType = contentType,
+        };
+
+        return await Task.FromResult(_s3.GetPreSignedURL(request));
+    }
+
     public string BuildStoragePath(Guid organisationId, Guid documentId, Guid revisionId) =>
         $"documents/{organisationId}/{documentId}/{revisionId}.pdf";
+
+    public string BuildEmployeeAttachmentPath(
+        Guid organisationId,
+        Guid employeeId,
+        Guid attachmentId,
+        string extension)
+    {
+        var ext = extension.StartsWith('.') ? extension : $".{extension}";
+        return $"employee-attachments/{organisationId}/{employeeId}/{attachmentId}{ext}";
+    }
 }

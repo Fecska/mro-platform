@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mro.Application.Features.Auth.Commands;
+using Mro.Application.Features.Auth.Queries;
 
 namespace Mro.Api.Controllers;
 
@@ -86,5 +87,23 @@ public sealed class AuthController(ISender sender) : ControllerBase
         }, ct);
 
         return result.IsSuccess ? NoContent() : BadRequest(result.Error.Message);
+    }
+
+    // ── GET /api/auth/me ──────────────────────────────────────────────────
+
+    [HttpGet("me")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Me(CancellationToken ct)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userId, out var uid))
+            return Unauthorized();
+
+        var result = await sender.Send(new GetMeQuery(uid), ct);
+
+        return result.IsSuccess ? Ok(result.Value) : NotFound(result.Error.Message);
     }
 }

@@ -65,9 +65,20 @@ public static class Roles
     /// </summary>
     public const string SystemAdmin = "system_admin";
 
+    // ── HR / Personnel ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// HR / Personnel administrator.
+    /// Full lifecycle management of employee records: create, update, licences,
+    /// authorisations, training, attachments, notes, and operational restrictions.
+    /// Does not have access to work orders, releases, or organisation-level settings.
+    /// </summary>
+    public const string PersonnelAdmin = "personnel_admin";
+
     /// <summary>All defined role names, for validation purposes.</summary>
     public static readonly IReadOnlySet<string> All = new HashSet<string>
     {
-        CertifyingStaff, Engineer, Inspector, Planner, StoreKeeper, OrgAdmin, SystemAdmin
+        CertifyingStaff, Engineer, Inspector, Planner, StoreKeeper,
+        OrgAdmin, SystemAdmin, PersonnelAdmin
     };
 }

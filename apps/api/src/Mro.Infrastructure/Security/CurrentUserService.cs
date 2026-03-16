@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Mro.Application.Abstractions;
+using Mro.Domain.Common.Permissions;
 
 namespace Mro.Infrastructure.Security;
 
@@ -54,6 +55,9 @@ public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor)
 
     public bool IsInRole(string role) =>
         Principal?.IsInRole(role) ?? false;
+
+    public bool HasPermission(Permission permission) =>
+        RolePermissions.Effective(Roles).Contains(permission.Code);
 
     public string? IpAddress =>
         httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();

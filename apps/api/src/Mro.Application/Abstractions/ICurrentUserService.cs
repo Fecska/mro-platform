@@ -1,3 +1,5 @@
+using Mro.Domain.Common.Permissions;
+
 namespace Mro.Application.Abstractions;
 
 /// <summary>
@@ -20,6 +22,12 @@ public interface ICurrentUserService
 
     /// <summary>Whether the user holds a specific role.</summary>
     bool IsInRole(string role);
+
+    /// <summary>
+    /// Whether the user's current roles grant the specified permission.
+    /// Resolved via <see cref="RolePermissions"/> — checks the union of all held roles.
+    /// </summary>
+    bool HasPermission(Permission permission);
 
     /// <summary>IP address of the current request, for audit logging.</summary>
     string? IpAddress { get; }

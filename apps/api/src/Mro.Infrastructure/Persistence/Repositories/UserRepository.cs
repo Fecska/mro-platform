@@ -25,6 +25,31 @@ public sealed class UserRepository(AppDbContext db) : IUserRepository
             .Include("_refreshTokens")
             .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.TokenHash == tokenHash), ct);
 
+    public async Task<IReadOnlyList<User>> ListAsync(
+        Guid organisationId,
+        string? role,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var query = db.Set<User>()
+            .Include("_roles")
+            .Where(u => u.OrganisationId == organisationId);
+
+        if (isActive.HasValue)
+            query = query.Where(u => u.IsActive == isActive.Value);
+
+        if (!string.IsNullOrEmpty(role))
+            query = query.Where(u => u.Roles.Any(r => r.RoleName == role && r.IsActive));
+
+        return await query
+            .OrderBy(u => u.DisplayName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(User user, CancellationToken ct = default)
     {
         await db.Set<User>().AddAsync(user, ct);

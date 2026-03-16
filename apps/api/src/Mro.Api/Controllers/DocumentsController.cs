@@ -8,11 +8,11 @@ using Mro.Domain.Aggregates.Document.Enums;
 namespace Mro.Api.Controllers;
 
 [ApiController]
-[Route("api/documents")]
+[Route("api/maintenance-documents")]
 [Authorize]
 public sealed class DocumentsController(ISender sender) : ControllerBase
 {
-    // ── GET /api/documents ────────────────────────────────────────────────
+    // ── GET /api/maintenance-documents ────────────────────────────────────
 
     [HttpGet]
     public async Task<IActionResult> List(
@@ -26,29 +26,7 @@ public sealed class DocumentsController(ISender sender) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── GET /api/documents/{id} ───────────────────────────────────────────
-
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
-    {
-        var result = await sender.Send(new GetDocumentQuery(id), ct);
-        return result.IsSuccess ? Ok(result.Value)
-            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
-            : Problem(result.Error.Message, statusCode: 400);
-    }
-
-    // ── GET /api/documents/{id}/revisions/{revisionId}/download-url ───────
-
-    [HttpGet("{id:guid}/revisions/{revisionId:guid}/download-url")]
-    public async Task<IActionResult> GetDownloadUrl(Guid id, Guid revisionId, CancellationToken ct)
-    {
-        var result = await sender.Send(new GetDownloadUrlQuery(id, revisionId), ct);
-        return result.IsSuccess ? Ok(new { url = result.Value })
-            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
-            : Problem(result.Error.Message, statusCode: 400);
-    }
-
-    // ── POST /api/documents ───────────────────────────────────────────────
+    // ── POST /api/maintenance-documents ───────────────────────────────────
 
     public sealed record RegisterDocumentRequest(
         string DocumentNumber,
@@ -63,11 +41,11 @@ public sealed class DocumentsController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new RegisterDocumentCommand
         {
-            DocumentNumber = request.DocumentNumber,
-            DocumentType = request.DocumentType,
-            Title = request.Title,
-            Issuer = request.Issuer,
-            RegulatoryReference = request.RegulatoryReference,
+            DocumentNumber       = request.DocumentNumber,
+            DocumentType         = request.DocumentType,
+            Title                = request.Title,
+            Issuer               = request.Issuer,
+            RegulatoryReference  = request.RegulatoryReference,
             SupersedesDocumentId = request.SupersedesDocumentId,
         }, ct);
 
@@ -76,7 +54,29 @@ public sealed class DocumentsController(ISender sender) : ControllerBase
             : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── POST /api/documents/{id}/revisions ────────────────────────────────
+    // ── GET /api/maintenance-documents/{id} ───────────────────────────────
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetDocumentQuery(id), ct);
+        return result.IsSuccess ? Ok(result.Value)
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── GET /api/maintenance-documents/{id}/revisions ─────────────────────
+
+    [HttpGet("{id:guid}/revisions")]
+    public async Task<IActionResult> GetRevisions(Guid id, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetRevisionsQuery(id), ct);
+        return result.IsSuccess ? Ok(result.Value)
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── POST /api/maintenance-documents/{id}/revisions ────────────────────
 
     public sealed record AddRevisionRequest(
         string RevisionNumber,
@@ -91,19 +91,57 @@ public sealed class DocumentsController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new AddRevisionCommand
         {
-            DocumentId = id,
+            DocumentId     = id,
             RevisionNumber = request.RevisionNumber,
-            IssuedAt = request.IssuedAt,
-            EffectiveAt = request.EffectiveAt,
-            StoragePath = request.StoragePath,
-            FileSizeBytes = request.FileSizeBytes,
+            IssuedAt       = request.IssuedAt,
+            EffectiveAt    = request.EffectiveAt,
+            StoragePath    = request.StoragePath,
+            FileSizeBytes  = request.FileSizeBytes,
             Sha256Checksum = request.Sha256Checksum,
         }, ct);
 
-        return result.IsSuccess ? Ok(new { id = result.Value }) : Problem(result.Error.Message, statusCode: 400);
+        return result.IsSuccess
+            ? Ok(new { id = result.Value })
+            : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── POST /api/documents/{id}/status ───────────────────────────────────
+    // ── POST /api/maintenance-documents/{id}/effectivity ──────────────────
+
+    public sealed record AddEffectivityRequest(
+        string? IcaoTypeCode,
+        string? SerialFrom,
+        string? SerialTo,
+        string? ConditionNote);
+
+    [HttpPost("{id:guid}/effectivity")]
+    public async Task<IActionResult> AddEffectivity(Guid id, [FromBody] AddEffectivityRequest request, CancellationToken ct)
+    {
+        var result = await sender.Send(new AddEffectivityCommand
+        {
+            DocumentId    = id,
+            IcaoTypeCode  = request.IcaoTypeCode,
+            SerialFrom    = request.SerialFrom,
+            SerialTo      = request.SerialTo,
+            ConditionNote = request.ConditionNote,
+        }, ct);
+
+        return result.IsSuccess
+            ? Ok(new { id = result.Value })
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── GET /api/maintenance-documents/{id}/revisions/{revisionId}/download-url
+
+    [HttpGet("{id:guid}/revisions/{revisionId:guid}/download-url")]
+    public async Task<IActionResult> GetDownloadUrl(Guid id, Guid revisionId, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetDownloadUrlQuery(id, revisionId), ct);
+        return result.IsSuccess ? Ok(new { url = result.Value })
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── POST /api/maintenance-documents/{id}/status ───────────────────────
 
     public sealed record ChangeStatusRequest(DocumentStatus NewStatus, Guid? SupersededByDocumentId);
 
@@ -112,8 +150,8 @@ public sealed class DocumentsController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new ChangeDocumentStatusCommand
         {
-            DocumentId = id,
-            NewStatus = request.NewStatus,
+            DocumentId             = id,
+            NewStatus              = request.NewStatus,
             SupersededByDocumentId = request.SupersededByDocumentId,
         }, ct);
 

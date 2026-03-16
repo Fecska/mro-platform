@@ -215,6 +215,23 @@ public sealed class User : AuditableEntity
         });
     }
 
+    /// <summary>Updates the user's display name.</summary>
+    public void UpdateDisplayName(string newDisplayName, Guid actorId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newDisplayName);
+        DisplayName = newDisplayName.Trim();
+        UpdatedBy  = actorId;
+        UpdatedAt  = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Re-activates a previously deactivated account.</summary>
+    public void Reactivate(Guid actorId)
+    {
+        IsActive  = true;
+        UpdatedBy = actorId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     /// <summary>Updates the password hash (after a verified password change flow).</summary>
     public void UpdatePasswordHash(string newPasswordHash, Guid actorId)
     {

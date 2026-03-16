@@ -15,21 +15,13 @@ public sealed class AircraftController(ISender sender) : ControllerBase
     // ── GET /api/aircraft ─────────────────────────────────────────────────
 
     [HttpGet]
-    public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
+    public async Task<IActionResult> List(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default)
     {
         var result = await sender.Send(new ListAircraftQuery(page, pageSize), ct);
         return result.IsSuccess ? Ok(result.Value) : Problem(result.Error.Message, statusCode: 400);
-    }
-
-    // ── GET /api/aircraft/{id} ────────────────────────────────────────────
-
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
-    {
-        var result = await sender.Send(new GetAircraftQuery(id), ct);
-        return result.IsSuccess ? Ok(result.Value)
-            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
-            : Problem(result.Error.Message, statusCode: 400);
     }
 
     // ── POST /api/aircraft ────────────────────────────────────────────────
@@ -46,11 +38,11 @@ public sealed class AircraftController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new RegisterAircraftCommand
         {
-            Registration = request.Registration,
-            SerialNumber = request.SerialNumber,
-            AircraftTypeId = request.AircraftTypeId,
+            Registration    = request.Registration,
+            SerialNumber    = request.SerialNumber,
+            AircraftTypeId  = request.AircraftTypeId,
             ManufactureDate = request.ManufactureDate,
-            Remarks = request.Remarks,
+            Remarks         = request.Remarks,
         }, ct);
 
         return result.IsSuccess
@@ -58,33 +50,87 @@ public sealed class AircraftController(ISender sender) : ControllerBase
             : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── POST /api/aircraft/{id}/status ────────────────────────────────────
+    // ── GET /api/aircraft/{id} ────────────────────────────────────────────
 
-    public sealed record ChangeStatusRequest(AircraftStatus NewStatus, string Reason);
-
-    [HttpPost("{id:guid}/status")]
-    public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeStatusRequest request, CancellationToken ct)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
     {
-        var result = await sender.Send(new ChangeAircraftStatusCommand
+        var result = await sender.Send(new GetAircraftQuery(id), ct);
+        return result.IsSuccess ? Ok(result.Value)
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── PATCH /api/aircraft/{id} ──────────────────────────────────────────
+
+    public sealed record PatchAircraftRequest(string? Remarks);
+
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> Patch(Guid id, [FromBody] PatchAircraftRequest request, CancellationToken ct)
+    {
+        var result = await sender.Send(new UpdateAircraftCommand
         {
-            AircraftId = id,
-            NewStatus = request.NewStatus,
-            Reason = request.Reason,
+            AircraftId    = id,
+            Remarks       = request.Remarks,
+            UpdateRemarks = true,
         }, ct);
 
-        return result.IsSuccess ? NoContent() : Problem(result.Error.Message, statusCode: 400);
+        return result.IsSuccess ? NoContent()
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── PUT /api/aircraft/{id}/counters ───────────────────────────────────
+    // ── GET /api/aircraft/{id}/counters ───────────────────────────────────
 
-    [HttpPut("{id:guid}/counters")]
-    public async Task<IActionResult> UpdateCounters(Guid id, [FromBody] IReadOnlyList<CounterUpdate> updates, CancellationToken ct)
+    [HttpGet("{id:guid}/counters")]
+    public async Task<IActionResult> GetCounters(Guid id, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetCountersQuery(id), ct);
+        return result.IsSuccess ? Ok(result.Value)
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── POST /api/aircraft/{id}/counters ──────────────────────────────────
+
+    [HttpPost("{id:guid}/counters")]
+    public async Task<IActionResult> UpdateCounters(
+        Guid id,
+        [FromBody] IReadOnlyList<CounterUpdate> updates,
+        CancellationToken ct)
     {
         var result = await sender.Send(new UpdateCountersCommand { AircraftId = id, Updates = updates }, ct);
-        return result.IsSuccess ? NoContent() : Problem(result.Error.Message, statusCode: 400);
+        return result.IsSuccess ? NoContent()
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── POST /api/aircraft/{id}/components ────────────────────────────────
+    // ── GET /api/aircraft/{id}/status-history ─────────────────────────────
+
+    [HttpGet("{id:guid}/status-history")]
+    public async Task<IActionResult> GetStatusHistory(Guid id, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetStatusHistoryQuery(id), ct);
+        return result.IsSuccess ? Ok(result.Value)
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── GET /api/aircraft/{id}/components ─────────────────────────────────
+
+    [HttpGet("{id:guid}/components")]
+    public async Task<IActionResult> ListComponents(
+        Guid id,
+        [FromQuery] bool installedOnly = true,
+        CancellationToken ct = default)
+    {
+        var result = await sender.Send(new ListComponentsQuery(id, installedOnly), ct);
+        return result.IsSuccess ? Ok(result.Value)
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── POST /api/aircraft/{id}/components/install ────────────────────────
 
     public sealed record InstallComponentRequest(
         string PartNumber,
@@ -94,36 +140,65 @@ public sealed class AircraftController(ISender sender) : ControllerBase
         Guid? WorkOrderId,
         Guid? InventoryItemId);
 
-    [HttpPost("{id:guid}/components")]
-    public async Task<IActionResult> InstallComponent(Guid id, [FromBody] InstallComponentRequest request, CancellationToken ct)
+    [HttpPost("{id:guid}/components/install")]
+    public async Task<IActionResult> InstallComponent(
+        Guid id,
+        [FromBody] InstallComponentRequest request,
+        CancellationToken ct)
     {
         var result = await sender.Send(new InstallComponentCommand
         {
-            AircraftId = id,
-            PartNumber = request.PartNumber,
-            SerialNumber = request.SerialNumber,
-            Description = request.Description,
+            AircraftId           = id,
+            PartNumber           = request.PartNumber,
+            SerialNumber         = request.SerialNumber,
+            Description          = request.Description,
             InstallationPosition = request.InstallationPosition,
-            WorkOrderId = request.WorkOrderId,
-            InventoryItemId = request.InventoryItemId,
+            WorkOrderId          = request.WorkOrderId,
+            InventoryItemId      = request.InventoryItemId,
         }, ct);
 
-        return result.IsSuccess ? Ok(new { id = result.Value }) : Problem(result.Error.Message, statusCode: 400);
+        return result.IsSuccess ? Ok(new { id = result.Value })
+            : Problem(result.Error.Message, statusCode: 400);
     }
 
-    // ── DELETE /api/aircraft/{id}/components/{componentId} ───────────────
+    // ── POST /api/aircraft/{id}/components/remove ─────────────────────────
 
-    public sealed record RemoveComponentRequest(string Reason, Guid? WorkOrderId);
+    public sealed record RemoveComponentRequest(Guid ComponentId, string Reason, Guid? WorkOrderId);
 
-    [HttpDelete("{id:guid}/components/{componentId:guid}")]
-    public async Task<IActionResult> RemoveComponent(Guid id, Guid componentId, [FromBody] RemoveComponentRequest request, CancellationToken ct)
+    [HttpPost("{id:guid}/components/remove")]
+    public async Task<IActionResult> RemoveComponent(
+        Guid id,
+        [FromBody] RemoveComponentRequest request,
+        CancellationToken ct)
     {
         var result = await sender.Send(new RemoveComponentCommand
         {
-            AircraftId = id,
-            ComponentId = componentId,
-            Reason = request.Reason,
+            AircraftId  = id,
+            ComponentId = request.ComponentId,
+            Reason      = request.Reason,
             WorkOrderId = request.WorkOrderId,
+        }, ct);
+
+        return result.IsSuccess ? NoContent()
+            : result.Error.Code == "NOT_FOUND" ? NotFound(result.Error.Message)
+            : Problem(result.Error.Message, statusCode: 400);
+    }
+
+    // ── POST /api/aircraft/{id}/status ────────────────────────────────────
+
+    public sealed record ChangeStatusRequest(AircraftStatus NewStatus, string Reason);
+
+    [HttpPost("{id:guid}/status")]
+    public async Task<IActionResult> ChangeStatus(
+        Guid id,
+        [FromBody] ChangeStatusRequest request,
+        CancellationToken ct)
+    {
+        var result = await sender.Send(new ChangeAircraftStatusCommand
+        {
+            AircraftId = id,
+            NewStatus  = request.NewStatus,
+            Reason     = request.Reason,
         }, ct);
 
         return result.IsSuccess ? NoContent() : Problem(result.Error.Message, statusCode: 400);

@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Mro.Api.Extensions;
 using Mro.Api.Middleware;
+using Mro.Infrastructure.Persistence;
 using Serilog;
 
 // ── Bootstrap Serilog ───────────────────────────────────────────────────────
@@ -22,6 +24,26 @@ try
             .WriteTo.Console();
     });
 
+    // ── CORS ─────────────────────────────────────────────────────────────
+    var allowedOrigins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("MroFrontend", policy =>
+        {
+            if (allowedOrigins.Length > 0)
+                policy.WithOrigins(allowedOrigins);
+            else
+                policy.AllowAnyOrigin();
+
+            policy
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+
     // ── Services ──────────────────────────────────────────────────────────
     builder.Services.AddMroPlatform(builder.Configuration);
 
@@ -42,6 +64,14 @@ try
     // ── Build ─────────────────────────────────────────────────────────────
     var app = builder.Build();
 
+    // ── Auto-migrate database on startup ─────────────────────────────────
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Log.Information("Database migrations applied");
+    }
+
     // ── Middleware pipeline ───────────────────────────────────────────────
 
     // Global exception handler — must be first
@@ -53,16 +83,18 @@ try
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
     });
 
-    if (app.Environment.IsDevelopment())
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(options =>
-        {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "MRO Platform API v1");
-        });
-    }
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "MRO Platform API v1");
+        options.RoutePrefix = "swagger";
+    });
 
-    app.UseHttpsRedirection();
+    // Only redirect HTTPS in non-Railway environments (Railway handles TLS at load balancer)
+    if (!app.Environment.IsProduction())
+        app.UseHttpsRedirection();
+
+    app.UseCors("MroFrontend");
     app.UseAuthentication();
     app.UseAuthorization();
 

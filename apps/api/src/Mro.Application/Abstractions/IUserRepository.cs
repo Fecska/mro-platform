@@ -10,6 +10,14 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
+    Task<IReadOnlyList<User>> ListAsync(
+        Guid organisationId,
+        string? role,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
+
     /// <summary>Lookup by email is always scoped to an organisation (unique per org).</summary>
     Task<User?> GetByEmailAsync(string email, Guid organisationId, CancellationToken ct = default);
 

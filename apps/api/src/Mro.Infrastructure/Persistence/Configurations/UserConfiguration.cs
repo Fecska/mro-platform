@@ -33,6 +33,11 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         // ── Owned collections ───────────────────────────────────────────────
 
+        // ── Ignored computed properties ─────────────────────────────────────
+        builder.Ignore(u => u.Roles);
+        builder.Ignore(u => u.RefreshTokens);
+        builder.Ignore(u => u.IsLocked);
+
         builder.HasMany<UserRole>("_roles")
             .WithOne()
             .HasForeignKey(r => r.UserId)
@@ -42,9 +47,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne()
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // ── Ignored computed properties ─────────────────────────────────────
-        builder.Ignore(u => u.IsLocked);
     }
 }
 

@@ -79,10 +79,14 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssembly(
             typeof(Mro.Application.Abstractions.ICurrentUserService).Assembly);
 
-        // MediatR pipeline behaviors
+        // MediatR pipeline behaviors — order matters: validation runs first, then permission check
         services.AddTransient(
             typeof(IPipelineBehavior<,>),
             typeof(ValidationBehavior<,>));
+
+        services.AddTransient(
+            typeof(IPipelineBehavior<,>),
+            typeof(PermissionBehaviour<,>));
 
         return services;
     }
@@ -99,6 +103,21 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAircraftRepository, AircraftRepository>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<IDocumentStorageService, S3DocumentStorageService>();
+        services.AddScoped<IDefectRepository, DefectRepository>();
+        services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
+        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        services.AddScoped<ILicenceRepository, LicenceRepository>();
+        services.AddScoped<IAuthorisationRepository, AuthorisationRepository>();
+        services.AddScoped<ITrainingRecordRepository, TrainingRecordRepository>();
+        services.AddScoped<IPartRepository, PartRepository>();
+        services.AddScoped<IBinLocationRepository, BinLocationRepository>();
+        services.AddScoped<IStockItemRepository, StockItemRepository>();
+        services.AddScoped<IToolRepository, ToolRepository>();
+        services.AddScoped<IInspectionRepository, InspectionRepository>();
+        services.AddScoped<IReleaseCertificateRepository, ReleaseCertificateRepository>();
+        services.AddScoped<IMaintenanceProgramRepository, MaintenanceProgramRepository>();
+        services.AddScoped<IDueItemRepository, DueItemRepository>();
+        services.AddScoped<IWorkPackageRepository, WorkPackageRepository>();
         services.AddAWSService<Amazon.S3.IAmazonS3>();
         services.AddScoped<AuditInterceptor>();
 

@@ -22,6 +22,11 @@ public sealed class MaintenanceDocumentConfiguration : IEntityTypeConfiguration<
             .IsUnique()
             .HasDatabaseName("ix_docs_number_type_org");
 
+        builder.Ignore(d => d.Revisions);
+        builder.Ignore(d => d.Effectivities);
+        builder.Ignore(d => d.TaskLinks);
+        builder.Ignore(d => d.CurrentRevision);
+
         builder.HasMany<DocumentRevision>("_revisions")
             .WithOne()
             .HasForeignKey(r => r.DocumentId)
@@ -36,8 +41,6 @@ public sealed class MaintenanceDocumentConfiguration : IEntityTypeConfiguration<
             .WithOne()
             .HasForeignKey(l => l.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Ignore(d => d.CurrentRevision);
     }
 }
 
