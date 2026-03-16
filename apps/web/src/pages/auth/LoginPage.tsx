@@ -34,7 +34,7 @@ export default function LoginPage() {
       setAuth(data.data.access_token, data.data.user);
       navigate(from, { replace: true });
     } catch {
-      setError('Hibás email vagy jelszó. Próbáld a Demo bejelentkezést.');
+      setError('Invalid email or password. Try Demo Login instead.');
     } finally {
       setLoading(false);
     }
@@ -51,8 +51,8 @@ export default function LoginPage() {
 
         {/* Demo banner */}
         <div className="bg-blue-600/20 border border-blue-500/40 rounded-xl px-4 py-3 text-center">
-          <p className="text-blue-200 text-xs font-medium uppercase tracking-wide mb-1">Demo környezet</p>
-          <p className="text-white text-sm">Kattints a Demo bejelentkezés gombra a rendszer megtekintéséhez</p>
+          <p className="text-blue-200 text-xs font-medium uppercase tracking-wide mb-1">Demo environment</p>
+          <p className="text-white text-sm">Click the Demo Login button to explore the platform</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -77,18 +77,18 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@demo-mro.hu"
+                placeholder="you@example.com"
                 autoComplete="email"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Jelszó</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input
                 type="password"
                 value={password}
@@ -103,7 +103,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-gray-800 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Bejelentkezés…' : 'Bejelentkezés'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
 
@@ -112,7 +112,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-xs text-gray-400">vagy</span>
+              <span className="bg-white px-3 text-xs text-gray-400">or</span>
             </div>
           </div>
 
@@ -123,11 +123,11 @@ export default function LoginPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Demo bejelentkezés
+            Demo Login
           </button>
 
           <p className="mt-4 text-center text-xs text-gray-400">
-            Demo fiók: admin@demo-mro.hu
+            Demo account: admin@demo-mro.hu
           </p>
         </div>
       </div>
