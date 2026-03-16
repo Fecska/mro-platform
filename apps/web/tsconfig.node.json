@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "ESNext", "DOM"],
-    "types": ["node"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "isolatedModules": true,
