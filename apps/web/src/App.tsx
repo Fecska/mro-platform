@@ -1,9 +1,14 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { AppRoutes } from './routes/AppRoutes';
 import { useAuthStore } from './features/auth/store/authStore';
 
 export function App() {
   const isInitialised = useAuthStore((s) => s.isInitialised);
+  const initialise = useAuthStore((s) => s.initialise);
+
+  useEffect(() => {
+    initialise();
+  }, [initialise]);
 
   // Wait for auth state to be resolved before rendering routes
   if (!isInitialised) {
